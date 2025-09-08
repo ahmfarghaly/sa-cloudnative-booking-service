@@ -25,6 +25,13 @@
 ### VS Code ###
 .vscode/
 
+# Vaadin specific
+frontend/generated/
+frontend/build/
+node_modules/
+.vaadin/
+vaadin-dev-server-port.txt
+
 # Package Files #
 *.jar
 *.war
