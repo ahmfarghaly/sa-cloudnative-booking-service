@@ -175,6 +175,12 @@ flowchart TD
   - Vaadin UI: `http://localhost:8090/`
   - Zipkin: `http://localhost:9411/`
 
+- **TODO**:
+  - Configure Vaadin application with Eureka service discovery and Zipkin tracing
+  - Add monitoring with Prometheus and Grafana
+  - Add Dockerfiles for all applications and Docker Compose file to start all services at once
+  - Add CI/CD pipeline
+
 ## License
 
 Educational/demo purposes. Add or adjust licensing details as needed.
