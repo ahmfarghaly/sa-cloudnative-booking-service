@@ -1,0 +1,59 @@
+spring:
+  application:
+    name: api-gateway
+  profiles:
+    active:
+      - dev
+  config:
+    import: optional:configserver:http://localhost:8888
+  cloud:
+    gateway:
+      server:
+        webflux:
+          routes:
+            - id: guest-service
+              uri: lb://guest-service
+              predicates:
+                - Path=/guest-service/**
+            - id: room-reservation-service
+              uri: lb://room-reservation-service
+              predicates:
+                - Path=/room-reservation-service/**
+            - id: room-service
+              uri: lb://room-service
+              predicates:
+                - Path=/room-service/**
+            - id: reservation-service
+              uri: lb://reservation-service
+              predicates:
+                - Path=/reservation-service/**
+          discovery:
+            locator:
+              enabled: true
+              lowerCaseServiceId: true
+          global-filter:
+            local-response-cache:
+              enabled: true
+          globalcors:
+            cors-configurations:
+              '[/**]':
+                allowedOrigins: "*"
+                allowedMethods: "*"
+                allowedHeaders: "*"
+              add-to-simple-url-handler-mapping:
+                enabled: true
+
+management:
+  tracing:
+    enabled: true
+    sampling:
+      probability: 1.0
+  zipkin:
+    tracing:
+      endpoint: http://localhost:9411/api/v2/spans
+
+logging:
+  level:
+    root: info
+    reactor.netty: debug
+    org.springframework.cloud.gateway: debug
