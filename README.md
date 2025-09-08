@@ -1,4 +1,4 @@
-# SA Cloud-Native Booking Service
+# Software Architecture Cloud-Native Booking Service
 
 A sample cloud-native microservices application built with Spring Boot and Spring Cloud. It demonstrates a modular booking domain composed of independent services, an API gateway, centralized configuration, service discovery, and a Vaadin-based UI.
 
@@ -26,59 +26,72 @@ The project showcases common cloud-native patterns: service decomposition, centr
 ## Architecture Diagram
 
 ```mermaid
-flowchart LR
-    subgraph Client
-      B[Browser]
-    end
+flowchart TD
+  subgraph Client
+    B[Browser]
+    V[Vaadin UI\nSpring Boot, Vaadin]
+    B -->|HTTPS/HTTP| V
+  end
 
-    B -->|HTTPS/HTTP| V[Vaadin UI (Spring Boot, Vaadin)]
+  subgraph Edge
+    G[API Gateway]
+  end
 
-    subgraph Edge
-      G[API Gateway]
-    end
-
-    V -->|REST| G
-
-    subgraph Platform
-      D[Discovery Server (Eureka)]
-      C[Config Server]
-      FS[(etc/ config store)]
-    end
-
+  subgraph Platform
+    D[Discovery Server\nEureka]
+    C[Config Server]
+    FS[(Config Store)]
     C --- FS
-    G --> D
-    GS --> D
-    RS --> D
-    RES --> D
-    RRS --> D
-    V --> D
+  end
 
-    GS -->|pull config| C
-    RS -->|pull config| C
-    RES -->|pull config| C
-    RRS -->|pull config| C
-    G -->|pull config| C
-    V -->|pull config| C
-    D -->|pull config| C
+  subgraph Services
+    GS[guest-service]
+    RS[room-service]
+    RES[reservation-service]
+    RRS[room-reservation-service]
+  end
 
-    subgraph Services
-      GS[guest-service]
-      RS[room-service]
-      RES[reservation-service]
-      RRS[room-reservation-service]
-    end
+  subgraph Observability
+    Z[Zipkin Server]
+    ZD[(Tracing Data)]
+    Z --> ZD
+  end
 
-    G -->|/guests| GS
-    G -->|/rooms| RS
-    G -->|/reservations| RES
-    G -->|/room-reservations| RRS
+%% Primary request flow
+  V -->|REST| G
+  G -->|/guests| GS
+  G -->|/rooms| RS
+  G -->|/reservations| RES
+  G -->|/room-reservations| RRS
 
-    V -->|REST (via Gateway)| G
+%% Service discovery connections
+  G --> D
+  V --> D
+  GS --> D
+  RS --> D
+  RES --> D
+  RRS --> D
+
+%% Configuration connections
+  G -->|pull config| C
+  V -->|pull config| C
+  GS -->|pull config| C
+  RS -->|pull config| C
+  RES -->|pull config| C
+  RRS -->|pull config| C
+  D -->|pull config| C
+
+%% Distributed tracing to Zipkin
+  V -.->|traces| Z
+  G -.->|traces| Z
+  GS -.->|traces| Z
+  RS -.->|traces| Z
+  RES -.->|traces| Z
+  RRS -.->|traces| Z
+
+%% Optional: Config connection to Zipkin
+  Z -->|pull config| C
 ```
-
-### Architecture (Rendered)
-
-![Architecture](docs/architecture.svg)
 
 ## Key Interactions
 
@@ -126,7 +139,7 @@ flowchart LR
 ## Technology Stack
 
 - **Language/Runtime**: Java, Spring Boot
-- **Cloud-Native**: Spring Cloud (Gateway, Config, Eureka/Discovery)
+- **Cloud-Native**: Spring Cloud (Gateway, Config, Eureka/Discovery, Micrometer tracing)
 - **UI**: Vaadin Flow
 - **Build**: Maven (with Maven Wrapper scripts available)
 - **Config**: Centralized via Config Server; local profiles read from `etc/`
@@ -143,6 +156,7 @@ flowchart LR
   3. Domain services: `guest-service/`, `room-service/`, `reservation-service/`, `room-reservation-service/`
   4. `api-gateway/`
   5. `vaadin-ui/`
+  6. Optional: zipkin docker container: `docker run -d -p 9411:9411 openzipkin/zipkin`
 
 - **Run examples**:
   - `mvn -q -pl config-server -am spring-boot:run -Dspring-boot.run.profiles=dev`
@@ -153,11 +167,13 @@ flowchart LR
   - `mvn -q -pl room-reservation-service -am spring-boot:run -Dspring-boot.run.profiles=dev`
   - `mvn -q -pl api-gateway -am spring-boot:run -Dspring-boot.run.profiles=dev`
   - `mvn -q -pl vaadin-ui -am spring-boot:run -Dspring-boot.run.profiles=dev`
+  - `docker run -d -p 9411:9411 openzipkin/zipkin`
 
 - **Useful URLs (examples, may vary by config)**:
   - Eureka Dashboard: `http://localhost:8761/`
   - API Gateway: `http://localhost:8080/`
   - Vaadin UI: `http://localhost:8090/`
+  - Zipkin: `http://localhost:9411/`
 
 ## License
 
